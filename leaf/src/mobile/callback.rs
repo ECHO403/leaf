@@ -45,12 +45,13 @@ pub mod android {
     use anyhow::{anyhow, Result};
     use jni::{objects::*, JavaVM};
     use std::sync::RwLock;
+    use jni::strings::JNIString;
 
     static JVM: RwLock<Option<JavaVM>> = RwLock::new(None);
     static CALLBACK_PROTECT_SOCKET: RwLock<Option<CallbackProtectSocket>> = RwLock::new(None);
 
     struct CallbackProtectSocket {
-        class: GlobalRef,
+        class: Global<JClass<'static>>,
         name: String,
     }
 
@@ -62,7 +63,7 @@ pub mod android {
         *JVM.write().unwrap() = None;
     }
 
-    pub fn set_protect_socket_callback(class: GlobalRef, name: String) {
+    pub fn set_protect_socket_callback(class: Global<JClass>, name: String) {
         *CALLBACK_PROTECT_SOCKET.write().unwrap() = Some(CallbackProtectSocket { class, name });
     }
 
@@ -71,27 +72,31 @@ pub mod android {
     }
 
     pub fn is_protect_socket_callback_set() -> bool {
-        CALLBACK_PROTECT_SOCKET.read().unwrap().is_some()
+        (*CALLBACK_PROTECT_SOCKET.read().unwrap()).is_some()
     }
 
     pub fn protect_socket(fd: RawFd) -> Result<()> {
-        let jvm_g = JVM.read().unwrap();
-        let Some(vm) = jvm_g.as_ref() else {
-            return Err(anyhow!("Java VM not set"));
-        };
+        // let jvm_g = JVM.read().unwrap();
+        // let Some(vm) = jvm_g.as_ref() else {
+        //     return Err(anyhow!("Java VM not set"));
+        // };
+        let vm = JavaVM::singleton()?;
         let cb_g = CALLBACK_PROTECT_SOCKET.read().unwrap();
-        let Some(cb) = cb_g.as_ref() else {
-            return Err(anyhow!("protect socket callback not set"));
+        let Some(cb) = (*cb_g).as_ref() else {
+            return Err("protect socket callback not set");
         };
-        let mut env = vm
-            .attach_current_thread_permanently()
-            .map_err(|e| anyhow!("cannot attach current thread to VM: {:?}", e))?;
-        let success = env
-            .call_method(&cb.class, &cb.name, "(I)Z", &[JValue::Int(fd as i32)])
-            .map_err(|e| anyhow!("cannot call method: {:?}", e))?;
-        if !success.z().unwrap_or(false) {
-            return Err(anyhow!("protect socket failed"));
-        }
+        vm.attach_current_thread(|mut env| -> Result<()> {
+            let success = env.call_method(
+                &cb.class,
+                &cb.name,
+                JNIString::new("(I)Z"),
+                &[JValue::Int(fd as i32)],
+            ).unwrap().z().unwrap();
+            if !success {
+                return Err("protect socket failed");
+            }
+            Ok(())
+        })?;
         Ok(())
     }
 }

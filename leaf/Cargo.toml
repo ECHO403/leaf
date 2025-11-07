@@ -258,7 +258,8 @@ netstack-lwip = { git = "https://github.com/eycorsican/netstack-lwip", rev = "4c
 ipconfig = "0.3"
 
 [target.'cfg(target_os = "android")'.dependencies]
-jni = "0.21"
+jni = { git = "https://github.com/jni-rs/jni-rs.git", rev = "5351e24" }
+#jni = "0.21"
 
 [target.'cfg(any(target_os = "macos", target_os = "linux"))'.dependencies]
 pnet_datalink = { version = "0.34", package = "pnet_datalink", optional = true }
