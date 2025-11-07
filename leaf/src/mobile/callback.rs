@@ -79,7 +79,7 @@ pub mod android {
         vm.attach_current_thread(|mut env| -> Result<()> {
             let success = env.call_method(
                 &cb.class,
-                &cb.name,
+                &JNIString::new(cb.name),
                 JNIString::new("(I)Z"),
                 &[JValue::Int(fd as i32)],
             ).unwrap().z().unwrap();
