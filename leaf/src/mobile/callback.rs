@@ -50,12 +50,12 @@ pub mod android {
     static CALLBACK_PROTECT_SOCKET: RwLock<Option<CallbackProtectSocket>> = RwLock::new(None);
 
     struct CallbackProtectSocket {
-        class: Global<JClass<'static>>,
+        obj: Global<JObject<'static>>,
         name: String,
     }
 
-    pub fn set_protect_socket_callback(class: Global<JClass>, name: String) {
-        *CALLBACK_PROTECT_SOCKET.write().unwrap() = Some(CallbackProtectSocket { class, name });
+    pub fn set_protect_socket_callback(obj: Global<JObject>, name: String) {
+        *CALLBACK_PROTECT_SOCKET.write().unwrap() = Some(CallbackProtectSocket { obj, name });
     }
 
     pub fn unset_protect_socket_callback() {
@@ -78,7 +78,7 @@ pub mod android {
         };
         vm.attach_current_thread(|mut env| -> Result<()> {
             let success = env.call_method(
-                &cb.class,
+                &cb.obj,
                 JNIString::new(&cb.name),
                 JNIString::new("(I)Z"),
                 &[JValue::Int(fd as i32)],
