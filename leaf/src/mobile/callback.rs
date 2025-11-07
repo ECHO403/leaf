@@ -47,20 +47,11 @@ pub mod android {
     use std::sync::RwLock;
     use jni::strings::JNIString;
 
-    static JVM: RwLock<Option<JavaVM>> = RwLock::new(None);
     static CALLBACK_PROTECT_SOCKET: RwLock<Option<CallbackProtectSocket>> = RwLock::new(None);
 
     struct CallbackProtectSocket {
         class: Global<JClass<'static>>,
         name: String,
-    }
-
-    pub fn set_jvm(vm: JavaVM) {
-        *JVM.write().unwrap() = Some(vm);
-    }
-
-    pub fn unset_jvm() {
-        *JVM.write().unwrap() = None;
     }
 
     pub fn set_protect_socket_callback(class: Global<JClass>, name: String) {
@@ -83,7 +74,7 @@ pub mod android {
         let vm = JavaVM::singleton()?;
         let cb_g = CALLBACK_PROTECT_SOCKET.read().unwrap();
         let Some(cb) = (*cb_g).as_ref() else {
-            return Err("protect socket callback not set");
+            return Err(anyhow!("protect socket callback not set"));
         };
         vm.attach_current_thread(|mut env| -> Result<()> {
             let success = env.call_method(
@@ -93,7 +84,7 @@ pub mod android {
                 &[JValue::Int(fd as i32)],
             ).unwrap().z().unwrap();
             if !success {
-                return Err("protect socket failed");
+                return Err(anyhow!("protect socket failed"));
             }
             Ok(())
         })?;
