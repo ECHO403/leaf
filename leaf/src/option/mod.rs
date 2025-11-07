@@ -85,11 +85,11 @@ lazy_static! {
     };
 
     pub static ref LOG_CONSOLE_OUT: bool = {
-        get_env_var_or("LOG_CONSOLE_OUT", false)
+        get_env_var_or("LOG_CONSOLE_OUT", true)
     };
 
     pub static ref LOG_NO_COLOR: bool = {
-        get_env_var_or("LOG_NO_COLOR", false)
+        get_env_var_or("LOG_NO_COLOR", true)
     };
 
     /// Turn on TLS SNI sniffing, the sniffed SNI would override the original
@@ -99,7 +99,7 @@ lazy_static! {
     pub static ref TLS_DOMAIN_SNIFFING: bool = {
         get_env_var_or_else(
             "TLS_DOMAIN_SNIFFING",
-            || get_env_var_or("DOMAIN_SNIFFING", false), // deprecated env var
+            || get_env_var_or("DOMAIN_SNIFFING", true), // deprecated env var
         )
     };
 
@@ -107,13 +107,13 @@ lazy_static! {
     /// connections a little bit, depending on whether the sniff can make an early
     /// return.
     pub static ref TLS_DOMAIN_SNIFFING_ALL: bool = {
-        get_env_var_or("TLS_DOMAIN_SNIFFING_ALL", false)
+        get_env_var_or("TLS_DOMAIN_SNIFFING_ALL", true)
     };
 
     /// Turn on HTTP host sniffing, by default only perform on connections with
     /// destination port 80.
     pub static ref HTTP_DOMAIN_SNIFFING: bool = {
-        get_env_var_or("HTTP_DOMAIN_SNIFFING", false)
+        get_env_var_or("HTTP_DOMAIN_SNIFFING", true)
     };
 
     /// Turn on HTTP host sniffing for all TCP connections, this may slow down the
@@ -125,12 +125,12 @@ lazy_static! {
 
     /// Uplink timeout after downlink EOF.
     pub static ref TCP_UPLINK_TIMEOUT: u64 = {
-        get_env_var_or("TCP_UPLINK_TIMEOUT", 10)
+        get_env_var_or("TCP_UPLINK_TIMEOUT", 300)
     };
 
     /// Downlink timeout after uplink EOF.
     pub static ref TCP_DOWNLINK_TIMEOUT: u64 = {
-        get_env_var_or("TCP_DOWNLINK_TIMEOUT", 10)
+        get_env_var_or("TCP_DOWNLINK_TIMEOUT", 300)
     };
 
     /// Buffer size for uplink and downlink connections, in KB.
@@ -182,7 +182,7 @@ lazy_static! {
     };
 
     pub static ref OUTBOUND_DIAL_TIMEOUT: u64 = {
-        get_env_var_or("OUTBOUND_DIAL_TIMEOUT", 4)
+        get_env_var_or("OUTBOUND_DIAL_TIMEOUT", 8)
     };
 
     pub static ref OUTBOUND_DIAL_ORDER: crate::proxy::DialOrder = {
@@ -195,7 +195,7 @@ lazy_static! {
 
     /// Maximum outbound dial concurrency.
     pub static ref OUTBOUND_DIAL_CONCURRENCY: usize = {
-        get_env_var_or("OUTBOUND_DIAL_CONCURRENCY", 1)
+        get_env_var_or("OUTBOUND_DIAL_CONCURRENCY", 64)
     };
 
     pub static ref ASSET_LOCATION: String = {
